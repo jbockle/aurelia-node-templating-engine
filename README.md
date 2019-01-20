@@ -64,3 +64,30 @@ const contexts = [
 })();
 
 ```
+
+outputs
+
+```json
+<div>
+    <span>hello world!</span>
+    <ul>
+        <li>jim</li><li>bob</li><!--anchor-->
+    </ul>
+</div>
+first template compile is longest
+compile view/view-model: 75.626ms 
+<div>
+    <span>hello again world!</span>
+    <ul>
+        <li>sue</li><li>jim</li><!--anchor-->
+    </ul>
+</div>
+compile view/view-model: 4.532ms
+<div>
+    <span>goodbye world!</span>
+    <ul>
+        <li>bob</li><li>jim</li><!--anchor-->
+    </ul>
+</div>
+compile view/view-model: 2.923ms
+```
