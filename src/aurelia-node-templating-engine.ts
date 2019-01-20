@@ -6,11 +6,15 @@ import { IAurelia } from './interfaces';
 export class AureliaNodeTemplatingEngine {
     private _aurelia: IAurelia;
 
-    private _host: HTMLDivElement;
+    private _view: string | Element;
+
+    private _host: Element;
 
     private _context: any;
 
-    public constructor(private _view: string) { }
+    public constructor(view: string | Element) {
+        this._view = view;
+    }
 
     public async compile(context: any) {
         this._context = context;
@@ -19,22 +23,20 @@ export class AureliaNodeTemplatingEngine {
     }
 
     private async _compile() {
-        this.createBodyElement(this._view);
+        this.appendView();
         await this._aurelia.enhance(this._context, this._host);
-        const _compiledHtml = this._host.outerHTML;
+        const _compiledHtml = this._host.innerHTML;
         this.dispose();
         return _compiledHtml;
     }
 
-    private dispose() {
-        this._aurelia.root.detached();
-        this._aurelia.root.unbind();
-        this._host.parentNode.removeChild(this._host);
-    }
-
-    private createBodyElement(innerHTML: string) {
-        this._host = document.createElement('div');
-        this._host.innerHTML = innerHTML;
+    private appendView() {
+        if (this._view instanceof Element) {
+            this._host = this._view;
+        } else {
+            this._host = document.createElement('div');
+            this._host.innerHTML = this._view;
+        }
         document.body.appendChild(this._host);
     }
 
@@ -47,5 +49,11 @@ export class AureliaNodeTemplatingEngine {
             .defaultResources();
         await aurelia.start();
         this._aurelia = aurelia as IAurelia;
+    }
+
+    private dispose() {
+        this._aurelia.root.detached();
+        this._aurelia.root.unbind();
+        this._host.parentNode.removeChild(this._host);
     }
 }
