@@ -15,6 +15,12 @@
             true,
             "check-format",
             "allow-leading-underscore"
+        ],
+        "typedef": [
+            true,
+            "call-signature",
+            "parameter",
+            "member-variable-declaration"
         ]
     },
     "linterOptions": {

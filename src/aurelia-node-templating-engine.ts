@@ -1,36 +1,63 @@
-import { NodeJsLoader } from 'aurelia-loader-nodejs';
-import { Aurelia } from 'aurelia-framework';
-import * as pal from 'aurelia-pal-nodejs';
 import { IAurelia } from './interfaces';
+import { IMinifyOptions, minify, getOptions } from './minification';
+import { Bootstrapper } from './bootstrapper';
+import { CleanHtml } from './clean-html';
+
+type View = string | Element;
 
 export class AureliaNodeTemplatingEngine {
-    private _aurelia: IAurelia;
+    private _aurelia!: IAurelia;
 
-    private _view: string | Element;
-
-    private _host: Element;
+    private _host!: Element;
 
     private _context: any;
 
-    public constructor(view: string | Element) {
+    private _view: View;
+
+    private _options: IMinifyOptions;
+
+    public get options(): IMinifyOptions {
+        return this._options;
+    }
+
+    public constructor(view: View, options?: IMinifyOptions) {
         this._view = view;
+        this._options = getOptions(options);
     }
 
-    public async compile(context: any) {
-        this._context = context;
-        await this.bootstrap();
-        return await this._compile();
-    }
+    public async compile(context: any): Promise<string> {
+        await this
+            .setContext(context)
+            .bootstrapAndRender();
 
-    private async _compile() {
-        this.appendView();
-        await this._aurelia.enhance(this._context, this._host);
-        const _compiledHtml = this._host.innerHTML;
+        const result = minify(CleanHtml.execute(this._host).innerHTML, this._options);
+
         this.dispose();
-        return _compiledHtml;
+
+        return result;
     }
 
-    private appendView() {
+    private setContext(context: any): AureliaNodeTemplatingEngine {
+        this._context = context;
+
+        return this;
+    }
+
+    private async bootstrapAndRender(): Promise<AureliaNodeTemplatingEngine> {
+        this._aurelia = await Bootstrapper.start();
+
+        this.appendView();
+
+        await this.render();
+
+        return this;
+    }
+
+    private async render(): Promise<void> {
+        await this._aurelia.enhance(this._context, this._host);
+    }
+
+    private appendView(): void {
         if (this._view instanceof Element) {
             this._host = this._view;
         } else {
@@ -40,20 +67,10 @@ export class AureliaNodeTemplatingEngine {
         document.body.appendChild(this._host);
     }
 
-    private async bootstrap(): Promise<void> {
-        pal.globalize();
-        const loader: NodeJsLoader = new NodeJsLoader();
-        const aurelia: Aurelia = new Aurelia(loader);
-        aurelia.use
-            .defaultBindingLanguage()
-            .defaultResources();
-        await aurelia.start();
-        this._aurelia = aurelia as IAurelia;
-    }
-
-    private dispose() {
-        this._aurelia.root.detached();
-        this._aurelia.root.unbind();
-        this._host.parentNode.removeChild(this._host);
+    private dispose(): void {
+        Bootstrapper.dispose();
+        if (this._host.parentNode) {
+            this._host.parentNode.removeChild(this._host);
+        }
     }
 }

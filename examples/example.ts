@@ -33,7 +33,7 @@ const contexts = [
 (async () => {
 
     const engine = new AureliaNodeTemplatingEngine(view);
-
+    console.log('starting');
     const timer = 'compile view/view-model';
     for (const context of contexts) {
         console.time(timer);
