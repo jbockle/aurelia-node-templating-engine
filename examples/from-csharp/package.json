@@ -1,0 +1,8 @@
+{
+  "name": "aurelia-node-templating-engine.net",
+  "private": true,
+  "dependencies": {
+    "aurelia-node-templating-engine": "0.1.0",
+    "aurelia-polyfills": "1.3.1"
+  }
+}
